@@ -1,0 +1,44 @@
+---
+# Add global settings here
+
+# aws-cloudformation role settings
+Stack.Name: web-proxy
+Stack.Description: Casecommons Web Proxy
+
+Stack.Tags:
+  org:business:owner: Casecommons
+  org:business:product: CloudFormation Web Proxy
+  org:business:severity: High
+  org:tech:environment: "{{ env }}"
+  org:tech:contact: christian@casecommons.org
+
+# By default the aws-cloudformation role expects your stack template
+# to be defined in the templates/stack.yml.j2 file
+#
+# Alternatively you can use a template published in the aws-cloudformation role
+# See https://github.com/docker-production-aws/aws-cloudformation
+Stack.Template: templates/proxy.yml.j2
+
+# CloudFormation settings
+# This sets a policy that disables updates to existing resources
+# This requires you to explicitly set the cf_disable_stack_policy flag to true when running the playbook
+Stack.Policy:
+  Statement:
+  - Effect: "Deny"
+    Action: "Update:*"
+    Principal: "*"
+    Resource: "*"
+
+# Stack inputs
+Stack.Inputs:
+  ApplicationImageId: "{{ config_application_ami }}"
+  ApplicationInstanceType: "{{ config_application_instance_type }}"
+  ApplicationDesiredCount: "{{ config_application_desired_count | default(config_az_count) | default(2) | int }}"
+  ApplicationKeyName: "{{ config_application_keyname }}"
+  Environment: "{{ env }}"
+  ProxyImage: "{{ config_proxy_image }}"
+  ProxyImageTag: "{{ config_proxy_tag }}"
+  ProxyDisableWhitelist: "{{ config_proxy_disable_whitelist | default(false) | string | lower }}"
+  ProxyWhitelist: "{{ config_proxy_whitelist | default('') }}"
+
+Sts.Region: us-east-1
